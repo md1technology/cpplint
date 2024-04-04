@@ -4290,10 +4290,20 @@ def CheckBraces(filename, clean_lines, linenum, error):
     #     not (GetLineWidth(prevline) > _line_length - 2 and '[]' in prevline)):
     #   error(filename, linenum, 'whitespace/braces', 4,
     #         '{ should almost always be at the end of the previous line')
+
+  # Check for opening curly braces '{' that follow a closing bracket ')' on the same line
   if re.match(r'.*\).*\{(?!.*\})', line):
     error(filename, linenum, 'whitespace/braces', 4,
           '{ should always be on its own line, unless it is part of an initializer list')
-
+  # Check for opening curly braces '{' that follow an else, while, then, catch or do on the same line
+  if re.match(r'.*(else|while|then|catch|do)\s*\{', line):
+    error(filename, linenum, 'whitespace/braces', 4,
+          '{ should always be on its own line, unless it is part of an initializer list')
+  # Check for closing curly braces '}' that have anything other than either a space and semi-colon, another curly brace or a newline after them
+  if re.match(r'.*\}[^ ;\n\}]\S', line) and not re.match(r'.*\{.*\}.*', line):
+    error(filename, linenum, 'whitespace/braces', 4,
+          'Invalid character after closing brace')
+    
   # An else clause should be on the same line as the preceding closing brace.
   if re.match(r'\s*else\b\s*(?:if\b|\{|$)', line):
     prevline = GetPreviousNonBlankLine(clean_lines, linenum)[0]
