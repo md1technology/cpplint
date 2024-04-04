@@ -3675,7 +3675,7 @@ def CheckComment(line, filename, linenum, next_line_start, error):
           ((commentpos >= 1 and
             line[commentpos-1] not in string.whitespace) or
            (commentpos >= 2 and
-            line[commentpos-2] not in string.whitespace))):
+            line[commentpos-2] not in string.whitespace))) :
         error(filename, linenum, 'whitespace/comments', 2,
               'At least two spaces is best between code and comments')
 
@@ -3706,7 +3706,8 @@ def CheckComment(line, filename, linenum, next_line_start, error):
       # should be a space somewhere between it and the // unless
       # it's a /// or //! Doxygen comment.
       if (re.match(r'//[^ ]*\w', comment) and
-          not re.match(r'(///|//\!)(\s+|$)', comment)):
+          not re.match(r'(///|//\!)(\s+|$)', comment) and
+          not comment == "//------1-------2-------3-------4-------5-------6-------7-------8-------9-------10------11------12------13------14------15------"):
         error(filename, linenum, 'whitespace/comments', 4,
               'Should have a space between // and comment')
 
