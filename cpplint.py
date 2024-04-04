@@ -4159,10 +4159,10 @@ def CheckBracesSpacing(filename, clean_lines, linenum, nesting_state, error):
     error(filename, linenum, 'whitespace/semicolon', 5,
           'Line contains only semicolon. If this should be an empty statement, '
           'use {} instead.')
-  elif (re.search(r'\s+;\s*$', line) and
+  elif (re.search(r'(?<!\s{1});\s*$', line) and
         not re.search(r'\bfor\b', line)):
     error(filename, linenum, 'whitespace/semicolon', 5,
-          'Extra space before last semicolon. If this should be an empty '
+          'Semicolon not preceded by exactly one space. If this should be an empty '
           'statement, use {} instead.')
 
 
