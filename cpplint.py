@@ -4273,7 +4273,7 @@ def CheckBraces(filename, clean_lines, linenum, error):
 
   line = clean_lines.elided[linenum]        # get rid of comments and strings
 
-  if re.match(r'\s*{\s*$', line):
+  # if re.match(r'\s*{\s*$', line):
     # We allow an open brace to start a line in the case where someone is using
     # braces in a block to explicitly create a new scope, which is commonly used
     # to control the lifetime of stack-allocated variables.  Braces are also
@@ -4283,12 +4283,16 @@ def CheckBraces(filename, clean_lines, linenum, error):
     # previous line starts a preprocessor block. We also allow a brace on the
     # following line if it is part of an array initialization and would not fit
     # within the 80 character limit of the preceding line.
-    prevline = GetPreviousNonBlankLine(clean_lines, linenum)[0]
-    if (not re.search(r'[,;:}{(]\s*$', prevline) and
-        not re.match(r'\s*#', prevline) and
-        not (GetLineWidth(prevline) > _line_length - 2 and '[]' in prevline)):
-      error(filename, linenum, 'whitespace/braces', 4,
-            '{ should almost always be at the end of the previous line')
+
+    # prevline = GetPreviousNonBlankLine(clean_lines, linenum)[0]
+    # if (not re.search(r'[,;:}{(]\s*$', prevline) and
+    #     not re.match(r'\s*#', prevline) and
+    #     not (GetLineWidth(prevline) > _line_length - 2 and '[]' in prevline)):
+    #   error(filename, linenum, 'whitespace/braces', 4,
+    #         '{ should almost always be at the end of the previous line')
+  if re.match(r'.*\).*\{(?!.*\})', line):
+    error(filename, linenum, 'whitespace/braces', 4,
+          '{ should always be on its own line, unless it is part of an initializer list')
 
   # An else clause should be on the same line as the preceding closing brace.
   if re.match(r'\s*else\b\s*(?:if\b|\{|$)', line):
