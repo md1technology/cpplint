@@ -3502,6 +3502,8 @@ def CheckSpacingForFunctionCall(filename, clean_lines, linenum, error):
   # Note that we assume the contents of [] to be short enough that
   # they'll never need to wrap.
   if (  # Ignore control structures.
+      not re.search(r'\b(if|elif|for|while|switch|return|new|delete|catch|sizeof)\b',
+                 fncall) and
       # Ignore pointers/references to functions.
       not re.search(r' \([^)]+\)\([^)]*(\)|,$)', fncall) and
       # Ignore pointers/references to arrays.
@@ -3512,8 +3514,7 @@ def CheckSpacingForFunctionCall(filename, clean_lines, linenum, error):
     elif re.search(r'\(\s+(?!(\s*\\)|\()', fncall):
       error(filename, linenum, 'whitespace/parens', 2,
             'Extra space after (')
-    if (re.search(r'\w\(', fncall) and
-        not re.search(r'\w\(\)', fncall) and
+    if (re.search(r'\w\s+\(', fncall) and
         not re.search(r'_{0,2}asm_{0,2}\s+_{0,2}volatile_{0,2}\s+\(', fncall) and
         not re.search(r'#\s*define|typedef|using\s+\w+\s*=', fncall) and
         not re.search(r'\w\s+\((\w+::)*\*\w+\)\(', fncall) and
@@ -3523,34 +3524,17 @@ def CheckSpacingForFunctionCall(filename, clean_lines, linenum, error):
       if re.search(r'\boperator_*\b', line):
         error(filename, linenum, 'whitespace/parens', 0,
               'Extra space before ( in function call')
-      elif re.search(r'\b(if|elif|for|while|switch|return|new|delete|catch|sizeof)\(',
-                 fncall):
+      else:
         error(filename, linenum, 'whitespace/parens', 4,
-              'No space before ( in control structure')
-      else :
-        error(filename, linenum, 'whitespace/parens', 4,
-              'No space before ( in function call')
+              'Extra space before ( in function call')
     # If the ) is followed only by a newline or a { + newline, assume it's
     # part of a control statement (if/while/etc), and don't complain
     if re.search(r'[^)]\s+\)\s*[^{\s]', fncall):
       # If the closing parenthesis is preceded by only whitespaces,
       # try to give a more descriptive error message.
       if re.search(r'^\s+\)', fncall):
-        # Work backwards, looking for the accompanying opening parenthesis.
-        numNests = 1
-        lambdaDetected = False
-        for i in range(linenum, 0, -1):
-          line = clean_lines.elided[i]
-          numNests += line.count(')') - line.count('(')
-          # Check for whitespace followed by [ then anything then ] then space then (
-          if re.search(r'\s*\[.*\]\s\(', line):
-            lambdaDetected = True
-            break
-          if numNests == 0:
-            break
-        if not lambdaDetected:
-          error(filename, linenum, 'whitespace/parens', 2,
-                'Closing ) should be moved to the previous line')
+        error(filename, linenum, 'whitespace/parens', 2,
+              'Closing ) should be moved to the previous line')
       else:
         error(filename, linenum, 'whitespace/parens', 2,
               'Extra space before )')
@@ -4317,9 +4301,7 @@ def CheckBraces(filename, clean_lines, linenum, error):
     error(filename, linenum, 'whitespace/braces', 4,
           '{ should always be on its own line, unless it is part of an initializer list')
   # Check for closing curly braces '}' that have anything other than either a space and semi-colon, another curly brace or a newline after them
-  if (re.match(r'.*\}[^ ;\n\}]\S', line) and
-      not re.match(r'.*\{.*\}.*', line) and
-      not re.match(r'.*\}\).*', line)):
+  if re.match(r'.*\}[^ ;\n\}]\S', line) and not re.match(r'.*\{.*\}.*', line):
     error(filename, linenum, 'whitespace/braces', 4,
           'Invalid character after closing brace')
     
