@@ -3533,8 +3533,21 @@ def CheckSpacingForFunctionCall(filename, clean_lines, linenum, error):
       # If the closing parenthesis is preceded by only whitespaces,
       # try to give a more descriptive error message.
       if re.search(r'^\s+\)', fncall):
-        error(filename, linenum, 'whitespace/parens', 2,
-              'Closing ) should be moved to the previous line')
+        # Work backwards, looking for the accompanying opening parenthesis.
+        numNests = 1
+        lambdaDetected = False
+        for i in range(linenum, 0, -1):
+          line = clean_lines.elided[i]
+          numNests += line.count(')') - line.count('(')
+          # Check for whitespace followed by [ then anything then ] then space then (
+          if re.search(r'\s*\[.*\]\s\(', line):
+            lambdaDetected = True
+            break
+          if numNests == 0:
+            break
+        if not lambdaDetected:
+          error(filename, linenum, 'whitespace/parens', 2,
+                'Closing ) should be moved to the previous line')
       else:
         error(filename, linenum, 'whitespace/parens', 2,
               'Extra space before )')
@@ -3568,6 +3581,28 @@ def CheckForNamespaceIndentation(filename, nesting_state, clean_lines, line,
     CheckItemIndentationInNamespace(filename, clean_lines.elided,
                                     line, error)
 
+
+def CheckClassName(filename, nesting_state, clean_lines, linenum, error):
+  currentClass = nesting_state.InnermostClass()
+  # Check if currently in a class
+  if not isinstance(currentClass, _ClassInfo):
+    return
+  
+  # Check if we are on the line where the class name is declared
+  if currentClass.starting_linenum != linenum :
+    return
+  
+  className = currentClass.name.split('::')[-1]
+  # Check if the first two characters of the class are lowercase
+  if re.match(r'^[a-z][a-z]', className):
+    error(filename, linenum, 'readability/classname', 5,
+          'Class names should use UpperCamelCase style')
+
+  # Check if the first letter is lowercase and the second is uppercase
+  if re.match(r'^[a-z][A-Z]', className):
+    error (filename, linenum, 'readability/classname', 5,
+           'Do not prefix class names with a lowercase letter')
+  
 
 def CheckForFunctionLengths(filename, clean_lines, linenum,
                             function_state, error):
@@ -6381,6 +6416,7 @@ def ProcessLine(filename, file_extension, clean_lines, line,
   raw_lines = clean_lines.raw_lines
   ParseNolintSuppressions(filename, raw_lines[line], line, error)
   nesting_state.Update(filename, clean_lines, line, error)
+  CheckClassName (filename, nesting_state, clean_lines, line, error)
   CheckForNamespaceIndentation(filename, nesting_state, clean_lines, line,
                                error)
   if nesting_state.InAsmBlock(): return
