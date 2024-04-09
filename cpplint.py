@@ -4335,8 +4335,8 @@ def CheckBraces(filename, clean_lines, linenum, error):
   if re.match(r'.*(else|while|then|catch|do)\s*\{', line):
     error(filename, linenum, 'whitespace/braces', 4,
           '{ should always be on its own line, unless it is part of an initializer list')
-  # Check for closing curly braces '}' that have anything other than either a space and semi-colon, another curly brace or a newline after them
-  if re.match(r'.*\}[^ ;\n\}]\S', line) and not re.match(r'.*\{.*\}.*', line):
+  # Check for closing curly braces '}' that have anything other than either a space and semi-colon, another curly brace, a closing parenthesis followed by a comma or a newline after them
+  if re.match(r'.*\}[^ ;\n\}\),]\S', line) and not re.match(r'.*\{.*\}.*', line):
     error(filename, linenum, 'whitespace/braces', 4,
           'Invalid character after closing brace')
     
